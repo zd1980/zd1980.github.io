@@ -1,439 +1,287 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>贪吃蛇游戏 - 网页版</title>
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        
-        .game-container {
-            position: relative;
-        }
-        
-        #game-board {
-            background-color: #000;
-            border: 2px solid #333;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-        
-        .score-container {
-            display: flex;
-            justify-content: space-between;
-            width: 400px;
-            margin-bottom: 10px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        #restart-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        
-        #restart-btn:hover {
-            background-color: #45a049;
-        }
-        
-        #game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            font-size: 24px;
-            display: none;
-        }
-        
-        .instructions {
-            margin-top: 20px;
-            text-align: center;
-            max-width: 400px;
-            color: #555;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>电器故障查询微信小程序开发指南</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f8fb;
+      --card: #ffffff;
+      --primary: #1aad19;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+    }
+
+    h1, h2, h3 { margin-top: 0; }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: -6px;
+      font-size: 15px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .step {
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: #ecfdf3;
+      color: #15803d;
+      margin-right: 8px;
+      margin-bottom: 6px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus { border-color: var(--primary); }
+
+    button {
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+
+    button:hover { opacity: 0.92; }
+
+    pre {
+      overflow-x: auto;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 13px;
+    }
+
+    #result {
+      margin-top: 12px;
+      border-left: 4px solid var(--primary);
+      background: #f0fdf4;
+      padding: 12px;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .small { color: var(--muted); font-size: 13px; }
+  </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="score-container">
-            <div>分数: <span id="score">0</span></div>
-            <div>最高分: <span id="high-score">0</span></div>
+  <main class="container">
+    <section class="card">
+      <h1>电器故障查询微信小程序：从 0 到上线</h1>
+      <p class="subtitle">目标：用户输入「电器大类 / 子类 / 品牌 / 故障代码」，小程序查询数据库并返回故障信息。</p>
+      <span class="pill">推荐技术栈：微信小程序 + Node.js + MySQL</span>
+      <span class="pill">接口风格：RESTful</span>
+      <span class="pill">部署建议：腾讯云 CloudBase / CVM</span>
+    </section>
+
+    <section class="card">
+      <h2>1) 功能拆解与开发顺序</h2>
+      <div class="grid">
+        <div class="step"><strong>步骤 A：需求建模</strong><br/>梳理字段：category、subCategory、brand、faultCode、faultDesc、cause、solution、safetyTip。</div>
+        <div class="step"><strong>步骤 B：数据库设计</strong><br/>先做可查询、可扩展的数据表；加组合索引保障查询速度。</div>
+        <div class="step"><strong>步骤 C：后端 API</strong><br/>实现 /api/faults/query，做参数校验、模糊匹配、错误码规范。</div>
+        <div class="step"><strong>步骤 D：小程序页面</strong><br/>输入表单 + 查询按钮 + 结果卡片 + 空状态 + 错误提示。</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>2) 推荐数据库结构（MySQL）</h2>
+<pre>CREATE TABLE appliance_faults (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  category VARCHAR(50) NOT NULL COMMENT '电器大类，如空调',
+  sub_category VARCHAR(50) NOT NULL COMMENT '电器子类，如挂机',
+  brand VARCHAR(50) NOT NULL COMMENT '品牌，如格力',
+  fault_code VARCHAR(50) NOT NULL COMMENT '故障代码，如E1',
+  fault_desc VARCHAR(255) NOT NULL COMMENT '故障说明',
+  possible_cause TEXT COMMENT '可能原因',
+  solution TEXT COMMENT '处理建议',
+  safety_tip VARCHAR(255) COMMENT '安全提示',
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_fault (category, sub_category, brand, fault_code),
+  KEY idx_lookup (category, sub_category, brand, fault_code)
+);</pre>
+      <p class="small">如果后期要支持“同代码多机型”，可把机型 model 单独扩展为新字段或关联表。</p>
+    </section>
+
+    <section class="card">
+      <h2>3) 后端查询接口示例（Node.js/Express）</h2>
+<pre>app.post('/api/faults/query', async (req, res) => {
+  const { category, subCategory, brand, faultCode } = req.body;
+  if (!category || !subCategory || !brand || !faultCode) {
+    return res.status(400).json({ code: 40001, message: '参数不完整' });
+  }
+
+  const [rows] = await db.execute(
+    `SELECT category, sub_category, brand, fault_code,
+            fault_desc, possible_cause, solution, safety_tip
+       FROM appliance_faults
+      WHERE category = ? AND sub_category = ?
+        AND brand = ? AND fault_code = ?
+      LIMIT 1`,
+    [category.trim(), subCategory.trim(), brand.trim(), faultCode.trim().toUpperCase()]
+  );
+
+  if (rows.length === 0) {
+    return res.status(404).json({ code: 40401, message: '未找到该故障代码' });
+  }
+
+  return res.json({ code: 0, data: rows[0] });
+});</pre>
+    </section>
+
+    <section class="card">
+      <h2>4) 小程序页面交互原型（可先在网页验证逻辑）</h2>
+      <p class="small">下面是一个前端模拟查询器，帮助你先验证字段和展示方式，再迁移到微信小程序。</p>
+      <div class="form-grid">
+        <div>
+          <label for="category">电器大类</label>
+          <input id="category" placeholder="例如：空调" />
         </div>
-        
-        <canvas id="game-board" width="400" height="400"></canvas>
-        
-        <div id="game-over">
-            <div>游戏结束!</div>
-            <div>最终分数: <span id="final-score">0</span></div>
-            <button id="restart-btn">重新开始</button>
+        <div>
+          <label for="subCategory">电器子类</label>
+          <input id="subCategory" placeholder="例如：挂机" />
         </div>
-    </div>
-    
-    <div class="instructions">
-        <p>使用方向键(↑, ↓, ←, →)或WASD控制蛇的移动</p>
-        <p>吃到食物(红色)增加分数和蛇的长度</p>
-        <p>撞到墙壁或自己的身体游戏结束</p>
-    </div>
+        <div>
+          <label for="brand">电器品牌</label>
+          <input id="brand" placeholder="例如：格力" />
+        </div>
+        <div>
+          <label for="faultCode">故障代码</label>
+          <input id="faultCode" placeholder="例如：E1" />
+        </div>
+      </div>
+      <button id="queryBtn">模拟查询</button>
+      <div id="result"></div>
+    </section>
 
-    <script>
-        // 游戏常量配置
-        const CONSTANTS = {
-            GRID_SIZE: 20,
-            BOARD_SIZE: 20,
-            GAME_SPEED: 120,
-            COLORS: {
-                BACKGROUND: 'black',
-                GRID_LINES: '#333',
-                SNAKE_HEAD: '#4CAF50',
-                SNAKE_BODY: '#8BC34A',
-                FOOD: '#FF5252',
-                TEXT: 'white'
-            },
-            DIRECTIONS: {
-                UP: { x: 0, y: -1 },
-                DOWN: { x: 0, y: 1 },
-                LEFT: { x: -1, y: 0 },
-                RIGHT: { x: 1, y: 0 }
-            }
-        };
+    <section class="card">
+      <h2>5) 你下一步直接照做（7天冲刺）</h2>
+      <ol>
+        <li><strong>第1天：</strong>建库 + 导入 100 条高频故障数据。</li>
+        <li><strong>第2天：</strong>写查询 API + Postman 联调。</li>
+        <li><strong>第3-4天：</strong>完成小程序页面、状态管理、错误处理。</li>
+        <li><strong>第5天：</strong>加日志埋点（查询关键词、命中率）。</li>
+        <li><strong>第6天：</strong>真机测试 + 性能优化（接口缓存、CDN）。</li>
+        <li><strong>第7天：</strong>上线发布 + 收集用户反馈迭代。</li>
+      </ol>
+    </section>
+  </main>
 
-        // 游戏核心类
-        class SnakeGame {
-            constructor(canvasId) {
-                this.canvas = document.getElementById(canvasId);
-                this.ctx = this.canvas.getContext('2d');
-                this.setupCanvas();
-                
-                // 创建离屏canvas用于网格缓存
-                this.gridCanvas = document.createElement('canvas');
-                this.gridCanvas.width = this.canvas.width;
-                this.gridCanvas.height = this.canvas.height;
-                this.gridCtx = this.gridCanvas.getContext('2d');
-                this.drawGridBackground();
-                
-                // 初始化游戏状态
-                this.resetGame();
-                
-                // 设置事件监听
-                this.setupEventListeners();
-            }
-            
-            setupCanvas() {
-                this.canvas.width = CONSTANTS.BOARD_SIZE * CONSTANTS.GRID_SIZE;
-                this.canvas.height = CONSTANTS.BOARD_SIZE * CONSTANTS.GRID_SIZE;
-            }
-            
-            drawGridBackground() {
-                this.gridCtx.fillStyle = CONSTANTS.COLORS.BACKGROUND;
-                this.gridCtx.fillRect(0, 0, this.gridCanvas.width, this.gridCanvas.height);
-                
-                this.gridCtx.strokeStyle = CONSTANTS.COLORS.GRID_LINES;
-                for (let i = 0; i <= CONSTANTS.BOARD_SIZE; i++) {
-                    // 水平线
-                    this.gridCtx.beginPath();
-                    this.gridCtx.moveTo(0, i * CONSTANTS.GRID_SIZE);
-                    this.gridCtx.lineTo(this.gridCanvas.width, i * CONSTANTS.GRID_SIZE);
-                    this.gridCtx.stroke();
-                    
-                    // 垂直线
-                    this.gridCtx.beginPath();
-                    this.gridCtx.moveTo(i * CONSTANTS.GRID_SIZE, 0);
-                    this.gridCtx.lineTo(i * CONSTANTS.GRID_SIZE, this.gridCanvas.height);
-                    this.gridCtx.stroke();
-                }
-            }
-            
-            resetGame() {
-                // 初始化蛇 (3个方块)
-                this.snake = [                    {x: 10, y: 10},
-                    {x: 9, y: 10},
-                    {x: 8, y: 10}
-                ];
-                
-                // 初始化方向
-                this.direction = CONSTANTS.DIRECTIONS.RIGHT;
-                this.nextDirection = CONSTANTS.DIRECTIONS.RIGHT;
-                
-                // 初始化分数
-                this.score = 0;
-                this.highScore = localStorage.getItem('snakeHighScore') || 0;
-                
-                // 初始化空白位置集合
-                this.emptyCells = this.calculateEmptyCells();
-                
-                // 生成食物
-                this.generateFood();
-                
-                // 游戏状态
-                this.gameRunning = false;
-                
-                // 清除之前的游戏循环
-                if (this.gameLoop) {
-                    clearInterval(this.gameLoop);
-                    this.gameLoop = null;
-                }
-            }
-            
-            /**
-             * 计算空白位置
-             * 使用Set存储所有空白位置，提高食物生成效率
-             */
-            calculateEmptyCells() {
-                const cells = new Set();
-                
-                // 初始化所有位置
-                for (let x = 0; x < CONSTANTS.BOARD_SIZE; x++) {
-                    for (let y = 0; y < CONSTANTS.BOARD_SIZE; y++) {
-                        cells.add(`${x},${y}`);
-                    }
-                }
-                
-                // 移除蛇占据的位置
-                for (const segment of this.snake) {
-                    cells.delete(`${segment.x},${segment.y}`);
-                }
-                
-                return cells;
-            }
-            
-            /**
-             * 生成食物位置
-             * 从空白位置集合中随机选择一个位置
-             */
-            generateFood() {
-                if (this.emptyCells.size === 0) {
-                    console.log('No empty cells available');
-                    return;
-                }
-                
-                // 从空白位置集合中随机选择
-                const emptyArray = Array.from(this.emptyCells);
-                const randomIndex = Math.floor(Math.random() * emptyArray.length);
-                const randomCell = emptyArray[randomIndex];
-                const [x, y] = randomCell.split(',').map(Number);
-                
-                this.food = { x, y };
-            }
-            
-            startGame() {
-                if (this.gameRunning) return;
-                
-                this.gameRunning = true;
-                this.gameLoop = setInterval(() => this.updateGame(), CONSTANTS.GAME_SPEED);
-            }
-            
-            updateGame() {
-                try {
-                    // 更新方向
-                    this.direction = this.nextDirection;
-                    
-                    // 计算新蛇头位置
-                    const head = this.snake[0];
-                    const newHead = {
-                        x: head.x + this.direction.x,
-                        y: head.y + this.direction.y
-                    };
-                    
-                    // 边界检查（穿墙）
-                    if (newHead.x < 0) newHead.x = CONSTANTS.BOARD_SIZE - 1;
-                    if (newHead.x >= CONSTANTS.BOARD_SIZE) newHead.x = 0;
-                    if (newHead.y < 0) newHead.y = CONSTANTS.BOARD_SIZE - 1;
-                    if (newHead.y >= CONSTANTS.BOARD_SIZE) newHead.y = 0;
-                    
-                    // 检查碰撞
-                    if (this.checkCollision(newHead)) {
-                        this.endGame();
-                        return;
-                    }
-                    
-                    // 移动蛇
-                    this.moveSnake(newHead);
-                    
-                    // 检查吃食物
-                    if (newHead.x === this.food.x && newHead.y === this.food.y) {
-                        this.handleFoodConsumption();
-                    }
-                    
-                    // 绘制游戏
-                    this.drawGame();
-                    
-                    // 更新分数显示
-                    this.updateScoreDisplay();
-                    
-                } catch (error) {
-                    console.error('Game update error:', error);
-                    this.endGame();
-                }
-            }
-            
-            checkCollision(position) {
-                // 检查是否撞到自己的身体
-                return this.snake.some((segment, index) => 
-                    index !== 0 && segment.x === position.x && segment.y === position.y
-                );
-            }
-            
-            moveSnake(newHead) {
-                // 添加新蛇头
-                this.snake.unshift(newHead);
-                
-                // 移除尾部
-                const tail = this.snake.pop();
-                
-                // 更新空白位置
-                this.emptyCells.add(`${tail.x},${tail.y}`);
-                this.emptyCells.delete(`${newHead.x},${newHead.y}`);
-            }
-            
-            handleFoodConsumption() {
-                // 增加分数
-                this.score += 10;
-                
-                // 增加蛇长度（不移除尾部）
-                const tail = this.snake[this.snake.length - 1];
-                this.snake.push({...tail});
-                
-                // 生成新食物
-                this.generateFood();
-                
-                // 更新空白位置（新食物位置）
-                this.emptyCells.delete(`${this.food.x},${this.food.y}`);
-            }
-            
-            drawGame() {
-                // 绘制网格背景（从离屏canvas复制）
-                this.ctx.drawImage(this.gridCanvas, 0, 0);
-                
-                // 绘制蛇
-                this.snake.forEach((segment, index) => {
-                    this.ctx.fillStyle = index === 0 
-                        ? CONSTANTS.COLORS.SNAKE_HEAD 
-                        : CONSTANTS.COLORS.SNAKE_BODY;
-                    
-                    this.ctx.fillRect(
-                        segment.x * CONSTANTS.GRID_SIZE, 
-                        segment.y * CONSTANTS.GRID_SIZE, 
-                        CONSTANTS.GRID_SIZE, 
-                        CONSTANTS.GRID_SIZE
-                    );
-                });
-                
-                // 绘制食物
-                this.ctx.fillStyle = CONSTANTS.COLORS.FOOD;
-                this.ctx.fillRect(
-                    this.food.x * CONSTANTS.GRID_SIZE, 
-                    this.food.y * CONSTANTS.GRID_SIZE, 
-                    CONSTANTS.GRID_SIZE, 
-                    CONSTANTS.GRID_SIZE
-                );
-            }
-            
-            updateScoreDisplay() {
-                document.getElementById('score').textContent = this.score;
-                document.getElementById('high-score').textContent = this.highScore;
-            }
-            
-            endGame() {
-                this.gameRunning = false;
-                clearInterval(this.gameLoop);
-                
-                // 更新最高分
-                if (this.score > this.highScore) {
-                    this.highScore = this.score;
-                    localStorage.setItem('snakeHighScore', this.highScore);
-                }
-                
-                // 显示游戏结束界面
-                document.getElementById('final-score').textContent = this.score;
-                document.getElementById('game-over').style.display = 'flex';
-            }
-            
-            handleKeyDown(event) {
-                if (!this.gameRunning) return;
-                
-                switch (event.key) {
-                    case 'ArrowUp':
-                    case 'w':
-                    case 'W':
-                        if (this.direction.y !== CONSTANTS.DIRECTIONS.DOWN.y) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.UP;
-                        break;
-                    case 'ArrowDown':
-                    case 's':
-                    case 'S':
-                        if (this.direction.y !== CONSTANTS.DIRECTIONS.UP.y) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.DOWN;
-                        break;
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                        if (this.direction.x !== CONSTANTS.DIRECTIONS.RIGHT.x) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.LEFT;
-                        break;
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':
-                        if (this.direction.x !== CONSTANTS.DIRECTIONS.LEFT.x) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.RIGHT;
-                        break;
-                }
-            }
-            
-            setupEventListeners() {
-                this.keyDownHandler = this.handleKeyDown.bind(this);
-                document.addEventListener('keydown', this.keyDownHandler);
-                
-                this.restartHandler = this.restartGame.bind(this);
-                document.getElementById('restart-btn').addEventListener('click', this.restartHandler);
-            }
-            
-            restartGame() {
-                this.resetGame();
-                document.getElementById('game-over').style.display = 'none';
-                this.startGame();
-            }
-            
-            destroy() {
-                clearInterval(this.gameLoop);
-                document.removeEventListener('keydown', this.keyDownHandler);
-                document.getElementById('restart-btn').removeEventListener('click', this.restartHandler);
-            }
-        }
+  <script>
+    const demoDB = {
+      '空调|挂机|格力|E1': {
+        faultDesc: '高压保护或系统压力异常',
+        possibleCause: '冷凝器散热不良、制冷剂过多、风机异常',
+        solution: '清洁冷凝器，检查风机电容与转速，必要时回收并重新定量加注制冷剂',
+        safetyTip: '操作前先断电，涉及制冷剂需由专业人员处理'
+      }
+    };
 
-        // 初始化游戏
-        window.addEventListener('DOMContentLoaded', () => {
-            const game = new SnakeGame('game-board');
-            game.startGame();
-            
-            // 窗口大小变化时重新绘制网格
-            window.addEventListener('resize', () => {
-                game.setupCanvas();
-                game.drawGridBackground();
-            });
-        });
-    </script>
-	<a href="https://hits.sh/zd1980.github.io/"><img alt="Hits" src="https://hits.sh/zd1980.github.io.svg"/></a>
+    const queryBtn = document.getElementById('queryBtn');
+    const resultEl = document.getElementById('result');
+
+    queryBtn.addEventListener('click', () => {
+      const category = document.getElementById('category').value.trim();
+      const subCategory = document.getElementById('subCategory').value.trim();
+      const brand = document.getElementById('brand').value.trim();
+      const faultCode = document.getElementById('faultCode').value.trim().toUpperCase();
+
+      if (!category || !subCategory || !brand || !faultCode) {
+        resultEl.style.display = 'block';
+        resultEl.style.background = '#fff7ed';
+        resultEl.style.borderLeftColor = '#ea580c';
+        resultEl.innerHTML = '<strong>请先填写完整的 4 个查询字段。</strong>';
+        return;
+      }
+
+      const key = `${category}|${subCategory}|${brand}|${faultCode}`;
+      const hit = demoDB[key];
+
+      if (!hit) {
+        resultEl.style.display = 'block';
+        resultEl.style.background = '#f8fafc';
+        resultEl.style.borderLeftColor = '#64748b';
+        resultEl.innerHTML = `未找到「${key}」对应数据。你可以先补充数据库样本。`;
+        return;
+      }
+
+      resultEl.style.display = 'block';
+      resultEl.style.background = '#f0fdf4';
+      resultEl.style.borderLeftColor = '#16a34a';
+      resultEl.innerHTML = `
+        <strong>故障说明：</strong>${hit.faultDesc}<br/>
+        <strong>可能原因：</strong>${hit.possibleCause}<br/>
+        <strong>处理建议：</strong>${hit.solution}<br/>
+        <strong>安全提示：</strong>${hit.safetyTip}
+      `;
+    });
+  </script>
 </body>
 </html>
