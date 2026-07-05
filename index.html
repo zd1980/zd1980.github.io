@@ -2,438 +2,1184 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>贪吃蛇游戏 - 网页版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>家电故障代码查询</title>
     <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            min-height: 100vh;
+        * {
             margin: 0;
-            background-color: #f0f0f0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        
-        .game-container {
-            position: relative;
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            min-height: 100vh;
+            padding-bottom: 60px;
         }
-        
-        #game-board {
-            background-color: #000;
-            border: 2px solid #333;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #1890ff, #096dd9);
+            color: white;
+            padding: 20px 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        
-        .score-container {
-            display: flex;
-            justify-content: space-between;
-            width: 400px;
-            margin-bottom: 10px;
-            font-size: 18px;
-            font-weight: bold;
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
         }
-        
-        #restart-btn {
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50;
+
+        /* 页面容器 */
+        .page {
+            display: none;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* 查询表单 */
+        .query-form {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            font-size: 15px;
+            background-color: #fafafa;
+            appearance: none;
+            -webkit-appearance: none;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #1890ff;
+            background-color: #fff;
+        }
+
+        .form-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23999' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        .query-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #ff6b35, #f5222d);
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: opacity 0.3s;
         }
-        
-        #restart-btn:hover {
-            background-color: #45a049;
+
+        .query-btn:active {
+            opacity: 0.8;
         }
-        
-        #game-over {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
+
+        .query-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* 热门故障 */
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 16px;
+            background: #1890ff;
+            border-radius: 2px;
+        }
+
+        .hot-faults {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .hot-fault-card {
+            background: white;
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hot-fault-card:active {
+            transform: scale(0.98);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .hot-fault-card .brand-code {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1890ff;
+            margin-bottom: 4px;
+        }
+
+        .hot-fault-card .fault-desc {
+            font-size: 13px;
+            color: #666;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* 轮播图 */
+        .carousel {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            height: 150px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .carousel-inner {
+            display: flex;
+            width: 300%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-slide {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .carousel-slide:nth-child(1) {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .carousel-slide:nth-child(2) {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+
+        .carousel-slide:nth-child(3) {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+
+        .carousel-dots {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+        }
+
+        .carousel-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .carousel-dot.active {
+            background: white;
+        }
+
+        /* 查询结果页 */
+        .result-header {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            background: white;
+            margin: -16px -16px 16px -16px;
+        }
+
+        .back-btn {
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            margin-right: 12px;
+            border: none;
+            background: none;
+            color: #333;
+        }
+
+        .result-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .result-card h3 {
+            font-size: 15px;
+            color: #1890ff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .result-card .reason-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .suggestion-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .suggestion-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #444;
+            display: flex;
+            gap: 8px;
+        }
+
+        .suggestion-list li:last-child {
+            border-bottom: none;
+        }
+
+        .suggestion-list li .num {
+            color: #1890ff;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .warning-card {
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .warning-card .warning-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #d46b08;
+            margin-bottom: 8px;
+        }
+
+        .warning-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .warning-card ul li {
+            font-size: 13px;
+            color: #666;
+            padding: 3px 0;
+        }
+
+        .warning-card ul li::before {
+            content: '• ';
+            color: #d46b08;
+        }
+
+        .contact-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .contact-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .contact-item:last-child {
+            border-bottom: none;
+        }
+
+        .contact-item .label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .contact-item .value {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .contact-item .action-btn {
+            padding: 6px 14px;
+            border-radius: 16px;
+            font-size: 12px;
+            border: 1px solid #1890ff;
+            color: #1890ff;
+            background: white;
+            cursor: pointer;
+        }
+
+        .contact-item .action-btn:active {
+            background: #e6f7ff;
+        }
+
+        /* 无结果 */
+        .no-result {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .no-result .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .no-result h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .no-result .tips {
+            text-align: left;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .no-result .tips p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .no-result .tips .section-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            margin-top: 12px;
+        }
+
+        .no-result .tips .section-label:first-child {
+            margin-top: 0;
+        }
+
+        /* 我的页面 */
+        .my-page-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+        }
+
+        .my-page-card h3 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: #333;
+        }
+
+        .my-page-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f5f5f5;
+            cursor: pointer;
+        }
+
+        .my-page-item:last-child {
+            border-bottom: none;
+        }
+
+        .my-page-item .item-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        .my-page-item .item-text {
+            flex: 1;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .my-page-item .item-arrow {
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        /* 多结果展示 */
+        .result-group {
+            margin-bottom: 20px;
+        }
+
+        .result-group-header {
+            background: #1890ff;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px 8px 0 0;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .result-group-body {
+            background: white;
+            padding: 16px;
+            border-radius: 0 0 8px 8px;
+            border: 1px solid #e8e8e8;
+            border-top: none;
+        }
+
+        /* 底部导航 */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: white;
+            display: flex;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+            z-index: 100;
+        }
+
+        .tab-item {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: color 0.2s;
+            color: #999;
+            text-decoration: none;
+        }
+
+        .tab-item.active {
+            color: #1890ff;
+        }
+
+        .tab-item .tab-icon {
+            font-size: 22px;
+            margin-bottom: 2px;
+        }
+
+        .tab-item .tab-text {
+            font-size: 11px;
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .loading .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #1890ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75);
             color: white;
-            font-size: 24px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
             display: none;
         }
-        
-        .instructions {
-            margin-top: 20px;
-            text-align: center;
-            max-width: 400px;
-            color: #555;
+
+        .toast.show {
+            display: block;
+            animation: fadeInOut 2s ease;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* 响应式 */
+        @media (min-width: 768px) {
+            body {
+                max-width: 480px;
+                margin: 0 auto;
+                border-left: 1px solid #e8e8e8;
+                border-right: 1px solid #e8e8e8;
+            }
+
+            .tab-bar {
+                max-width: 480px;
+                left: 50%;
+                transform: translateX(-50%);
+            }
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div class="score-container">
-            <div>分数: <span id="score">0</span></div>
-            <div>最高分: <span id="high-score">0</span></div>
+    <!-- 头部 -->
+    <div class="header">
+        <h1 id="page-title">家电故障代码查询</h1>
+    </div>
+
+    <!-- 首页 -->
+    <div class="page active" id="page-home">
+        <!-- 查询表单 -->
+        <div class="query-form">
+            <div class="form-group">
+                <label>选择电器大类</label>
+                <select id="category">
+                    <option value="">请选择电器大类</option>
+                    <option value="空调">空调</option>
+                    <option value="洗衣机">洗衣机</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>选择电器小类</label>
+                <select id="subCategory" disabled>
+                    <option value="">请先选择电器大类</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>选择品牌</label>
+                <select id="brand">
+                    <option value="">请选择品牌</option>
+                    <option value="格力">格力</option>
+                    <option value="美的">美的</option>
+                    <option value="奥克斯">奥克斯</option>
+                    <option value="海尔">海尔</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>输入故障代码</label>
+                <input type="text" id="faultCode" placeholder="如 E6、F0、E1" autocomplete="off">
+            </div>
+            <button class="query-btn" id="queryBtn" onclick="handleQuery()">立即查询</button>
         </div>
-        
-        <canvas id="game-board" width="400" height="400"></canvas>
-        
-        <div id="game-over">
-            <div>游戏结束!</div>
-            <div>最终分数: <span id="final-score">0</span></div>
-            <button id="restart-btn">重新开始</button>
+
+        <!-- 热门故障 -->
+        <div class="section-title">热门故障</div>
+        <div class="hot-faults" id="hotFaults"></div>
+
+        <!-- 轮播图 -->
+        <div class="carousel" id="carousel">
+            <div class="carousel-inner" id="carouselInner">
+                <div class="carousel-slide">专业家电故障诊断<br>快速定位问题</div>
+                <div class="carousel-slide">涵盖主流品牌<br>格力·美的·海尔·奥克斯</div>
+                <div class="carousel-slide">维修建议一键获取<br>安全提示保驾护航</div>
+            </div>
+            <div class="carousel-dots">
+                <div class="carousel-dot active"></div>
+                <div class="carousel-dot"></div>
+                <div class="carousel-dot"></div>
+            </div>
         </div>
     </div>
-    
-    <div class="instructions">
-        <p>使用方向键(↑, ↓, ←, →)或WASD控制蛇的移动</p>
-        <p>吃到食物(红色)增加分数和蛇的长度</p>
-        <p>撞到墙壁或自己的身体游戏结束</p>
+
+    <!-- 查询结果页 -->
+    <div class="page" id="page-result">
+        <div class="result-header">
+            <button class="back-btn" onclick="goBack()">← 返回</button>
+            <span class="result-title" id="resultTitle">查询结果</span>
+        </div>
+        <div id="resultContent"></div>
     </div>
+
+    <!-- 我的页面 -->
+    <div class="page" id="page-mine">
+        <div class="my-page-card">
+            <h3>联系客服</h3>
+            <div class="my-page-item" onclick="copyText('a13878048692')">
+                <div class="item-icon" style="background:#e6f7ff;">💬</div>
+                <div class="item-text">客服微信: a13878048692</div>
+                <div class="item-arrow">复制</div>
+            </div>
+        </div>
+        <div class="my-page-card">
+            <h3>功能反馈</h3>
+            <div class="my-page-item" onclick="copyText('a13878048692')">
+                <div class="item-icon" style="background:#fff7e6;">📝</div>
+                <div class="item-text">如有功能建议或问题，欢迎添加客服微信反馈</div>
+                <div class="item-arrow">›</div>
+            </div>
+        </div>
+        <div class="my-page-card">
+            <h3>关于</h3>
+            <div class="my-page-item">
+                <div class="item-icon" style="background:#f6ffed;">ℹ️</div>
+                <div class="item-text">家电故障代码查询 v1.0</div>
+                <div class="item-arrow"></div>
+            </div>
+            <div class="my-page-item">
+                <div class="item-icon" style="background:#f9f0ff;">📊</div>
+                <div class="item-text">已收录 202 条故障记录</div>
+                <div class="item-arrow"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchTab('home')">
+            <span class="tab-icon">🔧</span>
+            <span class="tab-text">电器故障查询</span>
+        </div>
+        <div class="tab-item" onclick="switchTab('mine')">
+            <span class="tab-icon">👤</span>
+            <span class="tab-text">我的</span>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
     <script>
-        // 游戏常量配置
-        const CONSTANTS = {
-            GRID_SIZE: 20,
-            BOARD_SIZE: 20,
-            GAME_SPEED: 120,
-            COLORS: {
-                BACKGROUND: 'black',
-                GRID_LINES: '#333',
-                SNAKE_HEAD: '#4CAF50',
-                SNAKE_BODY: '#8BC34A',
-                FOOD: '#FF5252',
-                TEXT: 'white'
-            },
-            DIRECTIONS: {
-                UP: { x: 0, y: -1 },
-                DOWN: { x: 0, y: 1 },
-                LEFT: { x: -1, y: 0 },
-                RIGHT: { x: 1, y: 0 }
-            }
-        };
+    // ==================== 故障代码数据库 ====================
+    const faultDatabase = [
+        // ===== 格力空调 =====
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"E6",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线是否断开",suggestion2:"测量是否有220V交流电到外机",suggestion3:"测量外机S+N端电压",suggestion4:"",hotLevel:950},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"F0",reason:"系统缺氟或堵塞",suggestion1:"检查系统是否缺氟",suggestion2:"检查管路是否堵塞",suggestion3:"检查阀门是否完全打开",suggestion4:"",hotLevel:900},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"E1",reason:"压缩机高压保护",suggestion1:"检查冷凝器散热是否正常",suggestion2:"检查室外风机是否正常运转",suggestion3:"检查系统压力是否过高",suggestion4:"清洗室外机散热器",hotLevel:850},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"E2",reason:"室内防冻结保护",suggestion1:"检查室内机滤网是否堵塞",suggestion2:"检查蒸发器是否脏堵",suggestion3:"检查室内风机转速是否正常",suggestion4:"检查系统是否缺氟",hotLevel:800},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"E3",reason:"压缩机低压保护",suggestion1:"检查系统是否缺氟",suggestion2:"检查膨胀阀是否堵塞",suggestion3:"检查过滤器是否堵塞",suggestion4:"",hotLevel:780},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"E4",reason:"压缩机排气温度过高",suggestion1:"检查系统是否缺氟",suggestion2:"检查膨胀阀是否正常",suggestion3:"检查压缩机是否老化",suggestion4:"",hotLevel:760},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"E5",reason:"过电流保护",suggestion1:"检查电压是否正常",suggestion2:"检查压缩机是否卡缸",suggestion3:"检查外机散热是否正常",suggestion4:"",hotLevel:740},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"H1",reason:"化霜",suggestion1:"正常化霜，等待即可",suggestion2:"如长时间显示，检查化霜传感器",suggestion3:"检查四通阀是否正常",suggestion4:"",hotLevel:700},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"H3",reason:"压缩机过载保护",suggestion1:"检查电源电压是否稳定",suggestion2:"检查压缩机运行电流",suggestion3:"检查外机散热情况",suggestion4:"",hotLevel:680},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"H5",reason:"模块保护（IPM）",suggestion1:"检查压缩机是否正常",suggestion2:"检查外机散热情况",suggestion3:"检查模块板是否损坏",suggestion4:"",hotLevel:660},
+        {category:"空调",subCategory:"定频挂机",brand:"格力",code:"E6",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线是否断开",suggestion2:"测量是否有220V交流电到外机",suggestion3:"测量外机S+N端电压",suggestion4:"",hotLevel:920},
+        {category:"空调",subCategory:"定频挂机",brand:"格力",code:"E1",reason:"压缩机高压保护",suggestion1:"检查冷凝器散热是否正常",suggestion2:"检查室外风机是否正常运转",suggestion3:"检查系统压力是否过高",suggestion4:"",hotLevel:870},
+        {category:"空调",subCategory:"定频挂机",brand:"格力",code:"E2",reason:"室内防冻结保护",suggestion1:"检查室内机滤网是否堵塞",suggestion2:"检查蒸发器是否脏堵",suggestion3:"检查室内风机转速是否正常",suggestion4:"",hotLevel:810},
+        {category:"空调",subCategory:"定频挂机",brand:"格力",code:"E3",reason:"压缩机低压保护",suggestion1:"检查系统是否缺氟",suggestion2:"检查膨胀阀是否堵塞",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"空调",subCategory:"定频挂机",brand:"格力",code:"E5",reason:"过电流保护",suggestion1:"检查电压是否正常",suggestion2:"检查压缩机是否卡缸",suggestion3:"",suggestion4:"",hotLevel:730},
+        {category:"空调",subCategory:"变频柜机",brand:"格力",code:"E6",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线是否断开",suggestion2:"测量是否有220V交流电到外机",suggestion3:"检查通讯板是否正常",suggestion4:"",hotLevel:910},
+        {category:"空调",subCategory:"变频柜机",brand:"格力",code:"E1",reason:"压缩机高压保护",suggestion1:"检查冷凝器散热是否正常",suggestion2:"检查室外风机是否正常运转",suggestion3:"",suggestion4:"",hotLevel:840},
+        {category:"空调",subCategory:"变频柜机",brand:"格力",code:"E4",reason:"压缩机排气温度过高",suggestion1:"检查系统是否缺氟",suggestion2:"检查膨胀阀是否正常",suggestion3:"",suggestion4:"",hotLevel:720},
+        {category:"空调",subCategory:"变频柜机",brand:"格力",code:"H5",reason:"模块保护",suggestion1:"检查模块板散热情况",suggestion2:"检查压缩机是否正常",suggestion3:"检查供电电压",suggestion4:"",hotLevel:690},
+        {category:"空调",subCategory:"定频柜机",brand:"格力",code:"E6",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线",suggestion2:"测量外机供电电压",suggestion3:"",suggestion4:"",hotLevel:880},
+        {category:"空调",subCategory:"定频柜机",brand:"格力",code:"E1",reason:"压缩机高压保护",suggestion1:"检查冷凝器散热",suggestion2:"检查系统压力",suggestion3:"",suggestion4:"",hotLevel:820},
+        {category:"空调",subCategory:"定频柜机",brand:"格力",code:"E3",reason:"压缩机低压保护",suggestion1:"检查系统是否缺氟",suggestion2:"检查管路是否堵塞",suggestion3:"",suggestion4:"",hotLevel:710},
+        {category:"空调",subCategory:"天花机",brand:"格力",code:"E6",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线",suggestion2:"检查通讯板",suggestion3:"测量外机供电",suggestion4:"",hotLevel:860},
+        {category:"空调",subCategory:"天花机",brand:"格力",code:"E1",reason:"压缩机高压保护",suggestion1:"检查冷凝器散热",suggestion2:"检查室外风机",suggestion3:"检查系统压力",suggestion4:"",hotLevel:790},
+        {category:"空调",subCategory:"天花机",brand:"格力",code:"E4",reason:"压缩机排气温度过高",suggestion1:"检查系统氟利昂",suggestion2:"检查膨胀阀",suggestion3:"",suggestion4:"",hotLevel:670},
+        {category:"空调",subCategory:"风管机",brand:"格力",code:"E6",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线",suggestion2:"检查通讯板是否损坏",suggestion3:"测量外机电压",suggestion4:"",hotLevel:850},
+        {category:"空调",subCategory:"风管机",brand:"格力",code:"E1",reason:"压缩机高压保护",suggestion1:"检查冷凝器散热",suggestion2:"检查风机运转",suggestion3:"",suggestion4:"",hotLevel:770},
+        {category:"空调",subCategory:"风管机",brand:"格力",code:"E2",reason:"室内防冻结保护",suggestion1:"检查滤网是否堵塞",suggestion2:"检查风量是否正常",suggestion3:"检查回风温度传感器",suggestion4:"",hotLevel:650},
+        // ===== 美的空调 =====
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E1",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线",suggestion2:"检查室外机供电",suggestion3:"检查通讯线接头",suggestion4:"",hotLevel:940},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E5",reason:"内、外机通讯故障",suggestion1:"检查通讯线是否接好",suggestion2:"检查内机主板",suggestion3:"检查外机主板",suggestion4:"",hotLevel:890},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E2",reason:"T2传感器故障",suggestion1:"检查T2传感器连接",suggestion2:"测量T2传感器阻值",suggestion3:"更换T2传感器",suggestion4:"",hotLevel:870},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E3",reason:"T3传感器故障",suggestion1:"检查T3传感器连接",suggestion2:"测量T3传感器阻值",suggestion3:"更换T3传感器",suggestion4:"",hotLevel:820},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E4",reason:"T4传感器故障（室外环温）",suggestion1:"检查T4传感器连接",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:790},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"P0",reason:"模块保护（IPM）",suggestion1:"检查模块板",suggestion2:"检查压缩机",suggestion3:"检查供电电压",suggestion4:"",hotLevel:760},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"P1",reason:"电压过高或过低保护",suggestion1:"检查电源电压",suggestion2:"等待电压恢复正常后重启",suggestion3:"",suggestion4:"",hotLevel:740},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"P2",reason:"压缩机顶部温度保护",suggestion1:"检查系统是否缺氟",suggestion2:"检查压缩机运行情况",suggestion3:"检查散热",suggestion4:"",hotLevel:710},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"P4",reason:"压缩机位置保护",suggestion1:"检查压缩机驱动板",suggestion2:"检查压缩机接线",suggestion3:"",suggestion4:"",hotLevel:680},
+        {category:"空调",subCategory:"定频挂机",brand:"美的",code:"E1",reason:"T1传感器故障",suggestion1:"检查T1传感器接线",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:860},
+        {category:"空调",subCategory:"定频挂机",brand:"美的",code:"E2",reason:"T2传感器故障",suggestion1:"检查T2传感器接线",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:830},
+        {category:"空调",subCategory:"定频挂机",brand:"美的",code:"E3",reason:"T3传感器故障",suggestion1:"检查T3传感器",suggestion2:"测量阻值是否正常",suggestion3:"",suggestion4:"",hotLevel:780},
+        {category:"空调",subCategory:"定频挂机",brand:"美的",code:"E5",reason:"过电流保护",suggestion1:"检查供电电压",suggestion2:"检查压缩机",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"空调",subCategory:"变频柜机",brand:"美的",code:"E1",reason:"内、外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:900},
+        {category:"空调",subCategory:"变频柜机",brand:"美的",code:"E2",reason:"T2传感器故障",suggestion1:"检查传感器连接",suggestion2:"测量阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:840},
+        {category:"空调",subCategory:"变频柜机",brand:"美的",code:"P0",reason:"模块保护",suggestion1:"检查模块散热",suggestion2:"检查压缩机",suggestion3:"检查供电",suggestion4:"",hotLevel:720},
+        {category:"空调",subCategory:"定频柜机",brand:"美的",code:"E1",reason:"T1传感器故障",suggestion1:"检查传感器",suggestion2:"测量阻值",suggestion3:"",suggestion4:"",hotLevel:810},
+        {category:"空调",subCategory:"定频柜机",brand:"美的",code:"E5",reason:"过电流保护",suggestion1:"检查电压",suggestion2:"检查压缩机运行电流",suggestion3:"",suggestion4:"",hotLevel:730},
+        {category:"空调",subCategory:"天花机",brand:"美的",code:"E1",reason:"内、外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查主板",suggestion3:"检查供电",suggestion4:"",hotLevel:850},
+        {category:"空调",subCategory:"天花机",brand:"美的",code:"E2",reason:"T2传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:740},
+        {category:"空调",subCategory:"风管机",brand:"美的",code:"E1",reason:"内、外机通讯故障",suggestion1:"检查通讯线连接",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:830},
+        {category:"空调",subCategory:"风管机",brand:"美的",code:"E5",reason:"过电流保护",suggestion1:"检查电压",suggestion2:"检查压缩机",suggestion3:"检查外机散热",suggestion4:"",hotLevel:710},
+        // ===== 奥克斯空调 =====
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查室内温度传感器连接",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:880},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E4",reason:"内、外机通讯故障",suggestion1:"检查内外机连接线",suggestion2:"检查通讯板",suggestion3:"检查外机供电",suggestion4:"",hotLevel:860},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E2",reason:"室内盘管传感器故障",suggestion1:"检查盘管传感器连接",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:820},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E3",reason:"室外盘管传感器故障",suggestion1:"检查室外盘管传感器",suggestion2:"测量阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:790},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E5",reason:"室外机排气温度过高",suggestion1:"检查系统氟利昂",suggestion2:"检查压缩机",suggestion3:"检查散热",suggestion4:"",hotLevel:760},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"F1",reason:"模块保护",suggestion1:"检查模块板",suggestion2:"检查压缩机",suggestion3:"",suggestion4:"",hotLevel:730},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"F2",reason:"过电流保护",suggestion1:"检查电压",suggestion2:"检查压缩机电流",suggestion3:"",suggestion4:"",hotLevel:700},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"F3",reason:"电压异常保护",suggestion1:"检查供电电压是否正常",suggestion2:"等待电压恢复",suggestion3:"",suggestion4:"",hotLevel:680},
+        {category:"空调",subCategory:"定频挂机",brand:"奥克斯",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器连接",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:850},
+        {category:"空调",subCategory:"定频挂机",brand:"奥克斯",code:"E4",reason:"内、外机通讯故障",suggestion1:"检查连接线",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:830},
+        {category:"空调",subCategory:"定频挂机",brand:"奥克斯",code:"E2",reason:"室内盘管传感器故障",suggestion1:"检查传感器",suggestion2:"测量阻值",suggestion3:"",suggestion4:"",hotLevel:780},
+        {category:"空调",subCategory:"变频柜机",brand:"奥克斯",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器连接",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:840},
+        {category:"空调",subCategory:"变频柜机",brand:"奥克斯",code:"E4",reason:"内、外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查主板",suggestion3:"检查供电",suggestion4:"",hotLevel:810},
+        {category:"空调",subCategory:"定频柜机",brand:"奥克斯",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:800},
+        {category:"空调",subCategory:"定频柜机",brand:"奥克斯",code:"E4",reason:"内、外机通讯故障",suggestion1:"检查连接线",suggestion2:"检查供电",suggestion3:"",suggestion4:"",hotLevel:770},
+        {category:"空调",subCategory:"天花机",brand:"奥克斯",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器连接",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:780},
+        {category:"空调",subCategory:"天花机",brand:"奥克斯",code:"E4",reason:"内、外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查供电",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"空调",subCategory:"风管机",brand:"奥克斯",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:760},
+        {category:"空调",subCategory:"风管机",brand:"奥克斯",code:"E4",reason:"内、外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:730},
+        // ===== 海尔空调 =====
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器连接",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:870},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E2",reason:"室内盘管传感器故障",suggestion1:"检查盘管传感器",suggestion2:"测量阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:830},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E6",reason:"室外机通讯故障",suggestion1:"检查内外机连接线",suggestion2:"检查室外机主板",suggestion3:"检查通讯电路",suggestion4:"",hotLevel:900},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E7",reason:"室外机排气温度过高",suggestion1:"检查氟利昂",suggestion2:"检查压缩机",suggestion3:"检查散热器",suggestion4:"",hotLevel:780},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"F3",reason:"排水系统故障",suggestion1:"检查排水管是否堵塞",suggestion2:"检查排水泵",suggestion3:"清理排水通道",suggestion4:"",hotLevel:750},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"F7",reason:"模块保护",suggestion1:"检查模块板",suggestion2:"检查压缩机",suggestion3:"检查散热",suggestion4:"",hotLevel:720},
+        {category:"空调",subCategory:"定频挂机",brand:"海尔",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:850},
+        {category:"空调",subCategory:"定频挂机",brand:"海尔",code:"E6",reason:"室外机通讯故障",suggestion1:"检查连接线",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:880},
+        {category:"空调",subCategory:"定频挂机",brand:"海尔",code:"E2",reason:"室内盘管传感器故障",suggestion1:"检查传感器",suggestion2:"测量阻值",suggestion3:"",suggestion4:"",hotLevel:810},
+        {category:"空调",subCategory:"变频柜机",brand:"海尔",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:840},
+        {category:"空调",subCategory:"变频柜机",brand:"海尔",code:"E6",reason:"室外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:870},
+        {category:"空调",subCategory:"定频柜机",brand:"海尔",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器连接",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:800},
+        {category:"空调",subCategory:"定频柜机",brand:"海尔",code:"E6",reason:"室外机通讯故障",suggestion1:"检查连接线",suggestion2:"检查供电",suggestion3:"",suggestion4:"",hotLevel:840},
+        {category:"空调",subCategory:"天花机",brand:"海尔",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:770},
+        {category:"空调",subCategory:"天花机",brand:"海尔",code:"E6",reason:"室外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:810},
+        {category:"空调",subCategory:"风管机",brand:"海尔",code:"E1",reason:"室内温度传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"空调",subCategory:"风管机",brand:"海尔",code:"E6",reason:"室外机通讯故障",suggestion1:"检查通讯线",suggestion2:"检查供电",suggestion3:"",suggestion4:"",hotLevel:790},
+        // ===== 格力洗衣机 =====
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"格力",code:"E1",reason:"排水超时",suggestion1:"检查排水管是否堵塞",suggestion2:"检查排水阀是否正常",suggestion3:"检查排水泵",suggestion4:"",hotLevel:820},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"格力",code:"E2",reason:"进水超时",suggestion1:"检查水龙头是否打开",suggestion2:"检查进水阀是否正常",suggestion3:"检查水压是否足够",suggestion4:"",hotLevel:800},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"格力",code:"E3",reason:"脱水不平衡",suggestion1:"重新整理衣物",suggestion2:"检查洗衣机是否水平放置",suggestion3:"减少衣物量重新脱水",suggestion4:"",hotLevel:780},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"格力",code:"E4",reason:"门盖未关好",suggestion1:"检查门盖是否关严",suggestion2:"检查门锁开关",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"格力",code:"E1",reason:"排水故障",suggestion1:"检查排水管",suggestion2:"清理排水泵滤网",suggestion3:"检查排水泵是否损坏",suggestion4:"",hotLevel:810},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"格力",code:"E2",reason:"进水故障",suggestion1:"检查水龙头",suggestion2:"检查进水阀",suggestion3:"检查进水管是否弯折",suggestion4:"",hotLevel:790},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"格力",code:"E3",reason:"加热故障",suggestion1:"检查加热管",suggestion2:"检查温度传感器",suggestion3:"",suggestion4:"",hotLevel:730},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"格力",code:"E4",reason:"门锁故障",suggestion1:"检查门是否关好",suggestion2:"检查门锁装置",suggestion3:"",suggestion4:"",hotLevel:720},
+        // ===== 美的洗衣机 =====
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"美的",code:"E1",reason:"排水超时",suggestion1:"检查排水管是否堵塞或弯折",suggestion2:"检查排水阀",suggestion3:"清理排水口",suggestion4:"",hotLevel:840},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"美的",code:"E2",reason:"进水超时",suggestion1:"检查水龙头是否开启",suggestion2:"检查进水阀过滤网",suggestion3:"检查水压",suggestion4:"",hotLevel:810},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"美的",code:"E3",reason:"脱水异常",suggestion1:"重新整理衣物使其均匀分布",suggestion2:"检查洗衣机底脚是否水平",suggestion3:"",suggestion4:"",hotLevel:770},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"美的",code:"E4",reason:"进水阀故障",suggestion1:"检查进水阀接线",suggestion2:"测量进水阀线圈",suggestion3:"更换进水阀",suggestion4:"",hotLevel:740},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"美的",code:"E5",reason:"水位传感器故障",suggestion1:"检查水位传感器连接",suggestion2:"检查气管是否漏气",suggestion3:"更换水位传感器",suggestion4:"",hotLevel:710},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"美的",code:"E1",reason:"排水故障",suggestion1:"检查排水泵滤网",suggestion2:"检查排水管",suggestion3:"检查排水泵",suggestion4:"",hotLevel:830},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"美的",code:"E2",reason:"门锁故障",suggestion1:"检查门是否完全关闭",suggestion2:"检查门锁开关",suggestion3:"更换门锁",suggestion4:"",hotLevel:800},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"美的",code:"E3",reason:"进水超时",suggestion1:"检查水龙头",suggestion2:"检查进水阀",suggestion3:"检查水压",suggestion4:"",hotLevel:780},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"美的",code:"E4",reason:"加热超时",suggestion1:"检查加热管",suggestion2:"检查温度传感器",suggestion3:"检查控制板",suggestion4:"",hotLevel:730},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"美的",code:"E5",reason:"水温异常",suggestion1:"检查温度传感器",suggestion2:"检查加热管",suggestion3:"",suggestion4:"",hotLevel:700},
+        // ===== 海尔洗衣机 =====
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E1",reason:"排水超时",suggestion1:"检查排水管是否堵塞",suggestion2:"检查排水阀",suggestion3:"检查排水泵",suggestion4:"",hotLevel:900},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E4",reason:"进水超时",suggestion1:"检查水龙头是否打开",suggestion2:"检查进水阀",suggestion3:"检查进水管过滤网",suggestion4:"",hotLevel:870},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E6",reason:"水位传感器报警",suggestion1:"检查水位传感器",suggestion2:"检查气管是否脱落",suggestion3:"更换水位传感器",suggestion4:"",hotLevel:850},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E2",reason:"门盖未合上",suggestion1:"检查门盖是否关好",suggestion2:"检查门锁开关",suggestion3:"",suggestion4:"",hotLevel:820},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E3",reason:"脱水不平衡",suggestion1:"重新整理衣物",suggestion2:"确认洗衣机放置平稳",suggestion3:"减少衣物量",suggestion4:"",hotLevel:790},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E5",reason:"电机故障",suggestion1:"检查电机接线",suggestion2:"检查电机电容",suggestion3:"检查控制板",suggestion4:"",hotLevel:760},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"E7",reason:"电机过热保护",suggestion1:"等待电机冷却后重试",suggestion2:"检查电机散热",suggestion3:"减少衣物量",suggestion4:"",hotLevel:730},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"E1",reason:"排水故障",suggestion1:"清理排水泵滤网",suggestion2:"检查排水管",suggestion3:"检查排水泵",suggestion4:"",hotLevel:880},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"E2",reason:"门锁故障",suggestion1:"检查门是否完全关好",suggestion2:"检查门锁装置",suggestion3:"更换门锁",suggestion4:"",hotLevel:840},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"E4",reason:"进水故障",suggestion1:"检查水龙头",suggestion2:"检查进水阀",suggestion3:"清理过滤网",suggestion4:"",hotLevel:810},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"E5",reason:"加热故障",suggestion1:"检查加热管",suggestion2:"检查温度传感器",suggestion3:"检查控制板",suggestion4:"",hotLevel:770},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"E6",reason:"水位传感器故障",suggestion1:"检查水位传感器",suggestion2:"检查气管连接",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"E7",reason:"电机故障",suggestion1:"检查电机接线",suggestion2:"检查驱动板",suggestion3:"",suggestion4:"",hotLevel:720},
+        // ===== 奥克斯洗衣机 =====
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"奥克斯",code:"E1",reason:"排水超时",suggestion1:"检查排水管是否堵塞",suggestion2:"检查排水阀",suggestion3:"清理排水口",suggestion4:"",hotLevel:800},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"奥克斯",code:"E2",reason:"进水超时",suggestion1:"检查水龙头",suggestion2:"检查进水阀",suggestion3:"检查水压",suggestion4:"",hotLevel:780},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"奥克斯",code:"E3",reason:"脱水异常",suggestion1:"重新整理衣物",suggestion2:"检查放置是否水平",suggestion3:"",suggestion4:"",hotLevel:750},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"奥克斯",code:"E4",reason:"门盖故障",suggestion1:"检查门盖是否关好",suggestion2:"检查门锁开关",suggestion3:"",suggestion4:"",hotLevel:720},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"奥克斯",code:"E5",reason:"水位传感器故障",suggestion1:"检查水位传感器",suggestion2:"检查气管",suggestion3:"更换传感器",suggestion4:"",hotLevel:700},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"奥克斯",code:"E1",reason:"排水故障",suggestion1:"清理排水泵滤网",suggestion2:"检查排水管是否堵塞",suggestion3:"",suggestion4:"",hotLevel:790},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"奥克斯",code:"E2",reason:"进水超时",suggestion1:"检查水龙头",suggestion2:"检查进水阀",suggestion3:"",suggestion4:"",hotLevel:760},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"奥克斯",code:"E3",reason:"门锁故障",suggestion1:"检查门是否关好",suggestion2:"检查门锁",suggestion3:"",suggestion4:"",hotLevel:730},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"奥克斯",code:"E4",reason:"加热故障",suggestion1:"检查加热管",suggestion2:"检查温度传感器",suggestion3:"",suggestion4:"",hotLevel:700},
+        // 更多补充数据
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"F1",reason:"室内环境温度传感器故障",suggestion1:"检查传感器接线",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:640},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"F2",reason:"室内蒸发器温度传感器故障",suggestion1:"检查传感器是否脱落",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:620},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"F3",reason:"室外环境温度传感器故障",suggestion1:"检查室外传感器",suggestion2:"测量阻值",suggestion3:"",suggestion4:"",hotLevel:600},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"F4",reason:"室外冷凝器温度传感器故障",suggestion1:"检查传感器",suggestion2:"测量阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:580},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"F5",reason:"室外排气温度传感器故障",suggestion1:"检查排气温度传感器",suggestion2:"测量阻值",suggestion3:"",suggestion4:"",hotLevel:560},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E6",reason:"室外机故障",suggestion1:"检查室外机主板",suggestion2:"检查压缩机",suggestion3:"检查外机供电",suggestion4:"",hotLevel:690},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"E8",reason:"静电除尘故障",suggestion1:"清洁静电除尘装置",suggestion2:"检查高压发生器",suggestion3:"",suggestion4:"",hotLevel:550},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E3",reason:"室外环温传感器故障",suggestion1:"检查传感器",suggestion2:"测量阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:690},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E4",reason:"室外盘管传感器故障",suggestion1:"检查传感器连接",suggestion2:"测量阻值",suggestion3:"",suggestion4:"",hotLevel:670},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"E5",reason:"室外排气传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:650},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E6",reason:"室外环温传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:670},
+        {category:"空调",subCategory:"变频挂机",brand:"奥克斯",code:"E7",reason:"室外盘管传感器故障",suggestion1:"检查传感器连接",suggestion2:"测量阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:650},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"F1",reason:"水位传感器接触不良",suggestion1:"检查水位传感器插头",suggestion2:"清洁传感器触点",suggestion3:"",suggestion4:"",hotLevel:680},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"海尔",code:"F2",reason:"排水泵故障",suggestion1:"检查排水泵是否卡住",suggestion2:"清理排水泵异物",suggestion3:"更换排水泵",suggestion4:"",hotLevel:660},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"海尔",code:"F1",reason:"水位传感器故障",suggestion1:"检查传感器连接",suggestion2:"检查气管",suggestion3:"",suggestion4:"",hotLevel:700},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"美的",code:"E6",reason:"通讯故障",suggestion1:"检查主板通讯线路",suggestion2:"检查显示板",suggestion3:"",suggestion4:"",hotLevel:680},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"美的",code:"E6",reason:"通讯故障",suggestion1:"检查通讯线连接",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:670},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"格力",code:"E5",reason:"水位传感器故障",suggestion1:"检查水位传感器",suggestion2:"检查气管是否漏气",suggestion3:"",suggestion4:"",hotLevel:700},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"格力",code:"E5",reason:"水温传感器故障",suggestion1:"检查温度传感器",suggestion2:"测量传感器阻值",suggestion3:"更换传感器",suggestion4:"",hotLevel:680},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"C5",reason:"跳线帽故障",suggestion1:"检查跳线帽是否脱落",suggestion2:"重新安装跳线帽",suggestion3:"",suggestion4:"",hotLevel:540},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"H6",reason:"无室内电机反馈",suggestion1:"检查室内风机电机",suggestion2:"检查电机接线",suggestion3:"更换室内电机",suggestion4:"",hotLevel:630},
+        {category:"空调",subCategory:"变频挂机",brand:"格力",code:"H7",reason:"同步信号异常",suggestion1:"检查压缩机",suggestion2:"检查驱动板",suggestion3:"",suggestion4:"",hotLevel:580},
+        {category:"空调",subCategory:"变频挂机",brand:"美的",code:"P3",reason:"高低电压保护",suggestion1:"检查电源电压",suggestion2:"使用稳压器",suggestion3:"",suggestion4:"",hotLevel:660},
+        {category:"空调",subCategory:"定频挂机",brand:"美的",code:"E4",reason:"T4传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:710},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"F1",reason:"室内环温传感器故障",suggestion1:"检查传感器接线",suggestion2:"更换传感器",suggestion3:"",hotLevel:700,suggestion4:""},
+        {category:"空调",subCategory:"变频挂机",brand:"海尔",code:"F2",reason:"室内盘管传感器故障",suggestion1:"检查传感器",suggestion2:"更换传感器",suggestion3:"",suggestion4:"",hotLevel:690},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"奥克斯",code:"E6",reason:"电机故障",suggestion1:"检查电机接线",suggestion2:"检查电机电容",suggestion3:"更换电机",suggestion4:"",hotLevel:680},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"奥克斯",code:"E5",reason:"水位异常",suggestion1:"检查水位传感器",suggestion2:"检查进水阀",suggestion3:"",suggestion4:"",hotLevel:670},
+        {category:"洗衣机",subCategory:"滚筒洗衣机",brand:"格力",code:"E6",reason:"通讯故障",suggestion1:"检查主板与显示板连接",suggestion2:"检查通讯线",suggestion3:"",suggestion4:"",hotLevel:660},
+        {category:"洗衣机",subCategory:"波轮洗衣机",brand:"格力",code:"E6",reason:"通讯故障",suggestion1:"检查通讯线连接",suggestion2:"检查主板",suggestion3:"",suggestion4:"",hotLevel:650}
+    ];
 
-        // 游戏核心类
-        class SnakeGame {
-            constructor(canvasId) {
-                this.canvas = document.getElementById(canvasId);
-                this.ctx = this.canvas.getContext('2d');
-                this.setupCanvas();
-                
-                // 创建离屏canvas用于网格缓存
-                this.gridCanvas = document.createElement('canvas');
-                this.gridCanvas.width = this.canvas.width;
-                this.gridCanvas.height = this.canvas.height;
-                this.gridCtx = this.gridCanvas.getContext('2d');
-                this.drawGridBackground();
-                
-                // 初始化游戏状态
-                this.resetGame();
-                
-                // 设置事件监听
-                this.setupEventListeners();
-            }
-            
-            setupCanvas() {
-                this.canvas.width = CONSTANTS.BOARD_SIZE * CONSTANTS.GRID_SIZE;
-                this.canvas.height = CONSTANTS.BOARD_SIZE * CONSTANTS.GRID_SIZE;
-            }
-            
-            drawGridBackground() {
-                this.gridCtx.fillStyle = CONSTANTS.COLORS.BACKGROUND;
-                this.gridCtx.fillRect(0, 0, this.gridCanvas.width, this.gridCanvas.height);
-                
-                this.gridCtx.strokeStyle = CONSTANTS.COLORS.GRID_LINES;
-                for (let i = 0; i <= CONSTANTS.BOARD_SIZE; i++) {
-                    // 水平线
-                    this.gridCtx.beginPath();
-                    this.gridCtx.moveTo(0, i * CONSTANTS.GRID_SIZE);
-                    this.gridCtx.lineTo(this.gridCanvas.width, i * CONSTANTS.GRID_SIZE);
-                    this.gridCtx.stroke();
-                    
-                    // 垂直线
-                    this.gridCtx.beginPath();
-                    this.gridCtx.moveTo(i * CONSTANTS.GRID_SIZE, 0);
-                    this.gridCtx.lineTo(i * CONSTANTS.GRID_SIZE, this.gridCanvas.height);
-                    this.gridCtx.stroke();
-                }
-            }
-            
-            resetGame() {
-                // 初始化蛇 (3个方块)
-                this.snake = [                    {x: 10, y: 10},
-                    {x: 9, y: 10},
-                    {x: 8, y: 10}
-                ];
-                
-                // 初始化方向
-                this.direction = CONSTANTS.DIRECTIONS.RIGHT;
-                this.nextDirection = CONSTANTS.DIRECTIONS.RIGHT;
-                
-                // 初始化分数
-                this.score = 0;
-                this.highScore = localStorage.getItem('snakeHighScore') || 0;
-                
-                // 初始化空白位置集合
-                this.emptyCells = this.calculateEmptyCells();
-                
-                // 生成食物
-                this.generateFood();
-                
-                // 游戏状态
-                this.gameRunning = false;
-                
-                // 清除之前的游戏循环
-                if (this.gameLoop) {
-                    clearInterval(this.gameLoop);
-                    this.gameLoop = null;
-                }
-            }
-            
-            /**
-             * 计算空白位置
-             * 使用Set存储所有空白位置，提高食物生成效率
-             */
-            calculateEmptyCells() {
-                const cells = new Set();
-                
-                // 初始化所有位置
-                for (let x = 0; x < CONSTANTS.BOARD_SIZE; x++) {
-                    for (let y = 0; y < CONSTANTS.BOARD_SIZE; y++) {
-                        cells.add(`${x},${y}`);
-                    }
-                }
-                
-                // 移除蛇占据的位置
-                for (const segment of this.snake) {
-                    cells.delete(`${segment.x},${segment.y}`);
-                }
-                
-                return cells;
-            }
-            
-            /**
-             * 生成食物位置
-             * 从空白位置集合中随机选择一个位置
-             */
-            generateFood() {
-                if (this.emptyCells.size === 0) {
-                    console.log('No empty cells available');
-                    return;
-                }
-                
-                // 从空白位置集合中随机选择
-                const emptyArray = Array.from(this.emptyCells);
-                const randomIndex = Math.floor(Math.random() * emptyArray.length);
-                const randomCell = emptyArray[randomIndex];
-                const [x, y] = randomCell.split(',').map(Number);
-                
-                this.food = { x, y };
-            }
-            
-            startGame() {
-                if (this.gameRunning) return;
-                
-                this.gameRunning = true;
-                this.gameLoop = setInterval(() => this.updateGame(), CONSTANTS.GAME_SPEED);
-            }
-            
-            updateGame() {
-                try {
-                    // 更新方向
-                    this.direction = this.nextDirection;
-                    
-                    // 计算新蛇头位置
-                    const head = this.snake[0];
-                    const newHead = {
-                        x: head.x + this.direction.x,
-                        y: head.y + this.direction.y
-                    };
-                    
-                    // 边界检查（穿墙）
-                    if (newHead.x < 0) newHead.x = CONSTANTS.BOARD_SIZE - 1;
-                    if (newHead.x >= CONSTANTS.BOARD_SIZE) newHead.x = 0;
-                    if (newHead.y < 0) newHead.y = CONSTANTS.BOARD_SIZE - 1;
-                    if (newHead.y >= CONSTANTS.BOARD_SIZE) newHead.y = 0;
-                    
-                    // 检查碰撞
-                    if (this.checkCollision(newHead)) {
-                        this.endGame();
-                        return;
-                    }
-                    
-                    // 移动蛇
-                    this.moveSnake(newHead);
-                    
-                    // 检查吃食物
-                    if (newHead.x === this.food.x && newHead.y === this.food.y) {
-                        this.handleFoodConsumption();
-                    }
-                    
-                    // 绘制游戏
-                    this.drawGame();
-                    
-                    // 更新分数显示
-                    this.updateScoreDisplay();
-                    
-                } catch (error) {
-                    console.error('Game update error:', error);
-                    this.endGame();
-                }
-            }
-            
-            checkCollision(position) {
-                // 检查是否撞到自己的身体
-                return this.snake.some((segment, index) => 
-                    index !== 0 && segment.x === position.x && segment.y === position.y
-                );
-            }
-            
-            moveSnake(newHead) {
-                // 添加新蛇头
-                this.snake.unshift(newHead);
-                
-                // 移除尾部
-                const tail = this.snake.pop();
-                
-                // 更新空白位置
-                this.emptyCells.add(`${tail.x},${tail.y}`);
-                this.emptyCells.delete(`${newHead.x},${newHead.y}`);
-            }
-            
-            handleFoodConsumption() {
-                // 增加分数
-                this.score += 10;
-                
-                // 增加蛇长度（不移除尾部）
-                const tail = this.snake[this.snake.length - 1];
-                this.snake.push({...tail});
-                
-                // 生成新食物
-                this.generateFood();
-                
-                // 更新空白位置（新食物位置）
-                this.emptyCells.delete(`${this.food.x},${this.food.y}`);
-            }
-            
-            drawGame() {
-                // 绘制网格背景（从离屏canvas复制）
-                this.ctx.drawImage(this.gridCanvas, 0, 0);
-                
-                // 绘制蛇
-                this.snake.forEach((segment, index) => {
-                    this.ctx.fillStyle = index === 0 
-                        ? CONSTANTS.COLORS.SNAKE_HEAD 
-                        : CONSTANTS.COLORS.SNAKE_BODY;
-                    
-                    this.ctx.fillRect(
-                        segment.x * CONSTANTS.GRID_SIZE, 
-                        segment.y * CONSTANTS.GRID_SIZE, 
-                        CONSTANTS.GRID_SIZE, 
-                        CONSTANTS.GRID_SIZE
-                    );
+    // 品牌联系方式数据库
+    const brandContacts = [
+        {brand:"格力", phone:"400-836-5315", wechat:"格力电器"},
+        {brand:"美的", phone:"400-889-9315", wechat:"美的服务"},
+        {brand:"奥克斯", phone:"400-826-7777", wechat:"奥克斯空调"},
+        {brand:"海尔", phone:"400-699-9999", wechat:"海尔服务"}
+    ];
+
+    // ==================== 子类映射 ====================
+    const subCategoryMap = {
+        "空调": ["变频挂机", "定频挂机", "变频柜机", "定频柜机", "天花机", "风管机"],
+        "洗衣机": ["波轮洗衣机", "滚筒洗衣机"]
+    };
+
+    // ==================== 页面逻辑 ====================
+
+    // 当前页面状态
+    let currentPage = 'home';
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', function() {
+        initCategoryListener();
+        renderHotFaults();
+        initCarousel();
+    });
+
+    // 电器大类选择联动
+    function initCategoryListener() {
+        const categorySelect = document.getElementById('category');
+        const subCategorySelect = document.getElementById('subCategory');
+
+        categorySelect.addEventListener('change', function() {
+            const category = this.value;
+            subCategorySelect.innerHTML = '';
+
+            if (category && subCategoryMap[category]) {
+                subCategorySelect.disabled = false;
+                subCategorySelect.innerHTML = '<option value="">请选择电器小类</option>';
+                subCategoryMap[category].forEach(function(sub) {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subCategorySelect.appendChild(opt);
                 });
-                
-                // 绘制食物
-                this.ctx.fillStyle = CONSTANTS.COLORS.FOOD;
-                this.ctx.fillRect(
-                    this.food.x * CONSTANTS.GRID_SIZE, 
-                    this.food.y * CONSTANTS.GRID_SIZE, 
-                    CONSTANTS.GRID_SIZE, 
-                    CONSTANTS.GRID_SIZE
-                );
+            } else {
+                subCategorySelect.disabled = true;
+                subCategorySelect.innerHTML = '<option value="">请先选择电器大类</option>';
             }
-            
-            updateScoreDisplay() {
-                document.getElementById('score').textContent = this.score;
-                document.getElementById('high-score').textContent = this.highScore;
+        });
+    }
+
+    // 渲染热门故障
+    function renderHotFaults() {
+        const hotFaultsContainer = document.getElementById('hotFaults');
+        const hotItems = faultDatabase
+            .slice()
+            .sort(function(a, b) { return b.hotLevel - a.hotLevel; })
+            .slice(0, 6);
+
+        // 去重（按品牌+代码）
+        const seen = new Set();
+        const uniqueHot = [];
+        hotItems.forEach(function(item) {
+            const key = item.brand + item.code;
+            if (!seen.has(key)) {
+                seen.add(key);
+                uniqueHot.push(item);
             }
-            
-            endGame() {
-                this.gameRunning = false;
-                clearInterval(this.gameLoop);
-                
-                // 更新最高分
-                if (this.score > this.highScore) {
-                    this.highScore = this.score;
-                    localStorage.setItem('snakeHighScore', this.highScore);
-                }
-                
-                // 显示游戏结束界面
-                document.getElementById('final-score').textContent = this.score;
-                document.getElementById('game-over').style.display = 'flex';
-            }
-            
-            handleKeyDown(event) {
-                if (!this.gameRunning) return;
-                
-                switch (event.key) {
-                    case 'ArrowUp':
-                    case 'w':
-                    case 'W':
-                        if (this.direction.y !== CONSTANTS.DIRECTIONS.DOWN.y) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.UP;
-                        break;
-                    case 'ArrowDown':
-                    case 's':
-                    case 'S':
-                        if (this.direction.y !== CONSTANTS.DIRECTIONS.UP.y) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.DOWN;
-                        break;
-                    case 'ArrowLeft':
-                    case 'a':
-                    case 'A':
-                        if (this.direction.x !== CONSTANTS.DIRECTIONS.RIGHT.x) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.LEFT;
-                        break;
-                    case 'ArrowRight':
-                    case 'd':
-                    case 'D':
-                        if (this.direction.x !== CONSTANTS.DIRECTIONS.LEFT.x) 
-                            this.nextDirection = CONSTANTS.DIRECTIONS.RIGHT;
-                        break;
-                }
-            }
-            
-            setupEventListeners() {
-                this.keyDownHandler = this.handleKeyDown.bind(this);
-                document.addEventListener('keydown', this.keyDownHandler);
-                
-                this.restartHandler = this.restartGame.bind(this);
-                document.getElementById('restart-btn').addEventListener('click', this.restartHandler);
-            }
-            
-            restartGame() {
-                this.resetGame();
-                document.getElementById('game-over').style.display = 'none';
-                this.startGame();
-            }
-            
-            destroy() {
-                clearInterval(this.gameLoop);
-                document.removeEventListener('keydown', this.keyDownHandler);
-                document.getElementById('restart-btn').removeEventListener('click', this.restartHandler);
-            }
+        });
+
+        hotFaultsContainer.innerHTML = uniqueHot.slice(0, 6).map(function(item) {
+            return '<div class="hot-fault-card" onclick="quickQuery(\'' + item.brand + '\',\'' + item.code + '\')">' +
+                '<div class="brand-code">' + item.brand + ' ' + item.code + '</div>' +
+                '<div class="fault-desc">' + item.reason + '</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    // 轮播图
+    function initCarousel() {
+        let currentSlide = 0;
+        const totalSlides = 3;
+        const inner = document.getElementById('carouselInner');
+        const dots = document.querySelectorAll('.carousel-dot');
+
+        setInterval(function() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            inner.style.transform = 'translateX(-' + (currentSlide * 33.333) + '%)';
+            dots.forEach(function(dot, i) {
+                dot.classList.toggle('active', i === currentSlide);
+            });
+        }, 3000);
+    }
+
+    // 快速查询（点击热门故障）
+    function quickQuery(brand, code) {
+        document.getElementById('brand').value = brand;
+        document.getElementById('faultCode').value = code;
+        handleQuery();
+    }
+
+    // 执行查询
+    function handleQuery() {
+        const category = document.getElementById('category').value;
+        const subCategory = document.getElementById('subCategory').value;
+        const brand = document.getElementById('brand').value;
+        const codeInput = document.getElementById('faultCode').value.trim().toUpperCase();
+
+        if (!brand && !codeInput) {
+            showToast('请至少输入品牌或故障代码');
+            return;
         }
 
-        // 初始化游戏
-        window.addEventListener('DOMContentLoaded', () => {
-            const game = new SnakeGame('game-board');
-            game.startGame();
-            
-            // 窗口大小变化时重新绘制网格
-            window.addEventListener('resize', () => {
-                game.setupCanvas();
-                game.drawGridBackground();
-            });
+        // 支持多个故障代码查询
+        const codes = codeInput.split(/[,，、\s]+/).filter(function(c) { return c; });
+
+        let results = faultDatabase.filter(function(item) {
+            let match = true;
+            if (category) match = match && item.category === category;
+            if (subCategory) match = match && item.subCategory === subCategory;
+            if (brand) match = match && item.brand === brand;
+            if (codes.length > 0) match = match && codes.indexOf(item.code) !== -1;
+            return match;
         });
+
+        // 去重
+        const resultMap = new Map();
+        results.forEach(function(item) {
+            const key = item.brand + '-' + item.code + '-' + item.reason;
+            if (!resultMap.has(key)) {
+                resultMap.set(key, item);
+            }
+        });
+        results = Array.from(resultMap.values());
+
+        showResults(results, brand, codeInput);
+    }
+
+    // 显示查询结果
+    function showResults(results, brand, code) {
+        const resultContent = document.getElementById('resultContent');
+        const resultTitle = document.getElementById('resultTitle');
+
+        if (results.length === 0) {
+            resultTitle.textContent = '查询结果';
+            resultContent.innerHTML = renderNoResult();
+        } else {
+            resultTitle.textContent = (brand || '') + ' ' + (code || '') + ' 查询结果';
+            let html = '';
+
+            results.forEach(function(item) {
+                const suggestions = [item.suggestion1, item.suggestion2, item.suggestion3, item.suggestion4]
+                    .filter(function(s) { return s; });
+
+                html += '<div class="result-group">' +
+                    '<div class="result-group-header">' + item.brand + ' ' + item.code + ' - ' + item.subCategory + '</div>' +
+                    '<div class="result-group-body">' +
+                    '<div class="result-card" style="box-shadow:none;margin:0;padding:0;">' +
+                    '<h3>🔍 故障原因</h3>' +
+                    '<p class="reason-text">' + item.reason + '</p>' +
+                    '</div>' +
+                    '<div class="result-card" style="box-shadow:none;margin:0;padding:12px 0 0 0;">' +
+                    '<h3>🔧 维修建议</h3>' +
+                    '<ul class="suggestion-list">' +
+                    suggestions.map(function(s, i) {
+                        return '<li><span class="num">' + (i + 1) + '.</span><span>' + s + '</span></li>';
+                    }).join('') +
+                    '</ul>' +
+                    '</div>' +
+                    '</div></div>';
+            });
+
+            // 维修警告
+            html += '<div class="warning-card">' +
+                '<div class="warning-title">⚠️ 电器维修有风险</div>' +
+                '<ul>' +
+                '<li>不具备专业技能请勿自行拆机</li>' +
+                '<li>部分维修需要专业工具和资质</li>' +
+                '<li>建议优先联系品牌官方售后</li>' +
+                '</ul></div>';
+
+            // 联系方式
+            const contact = brandContacts.find(function(c) { return c.brand === (results[0] && results[0].brand); });
+            if (contact) {
+                html += '<div class="contact-card">' +
+                    '<div class="contact-item">' +
+                    '<div><div class="label">官方维修电话</div><div class="value">' + contact.phone + '</div></div>' +
+                    '<button class="action-btn" onclick="callPhone(\'' + contact.phone + '\')">拨打</button>' +
+                    '</div>' +
+                    '<div class="contact-item">' +
+                    '<div><div class="label">官方公众号</div><div class="value">' + contact.wechat + '</div></div>' +
+                    '<button class="action-btn" onclick="copyText(\'' + contact.wechat + '\')">复制</button>' +
+                    '</div></div>';
+            }
+
+            resultContent.innerHTML = html;
+        }
+
+        switchPage('result');
+    }
+
+    // 无结果页面
+    function renderNoResult() {
+        return '<div class="no-result">' +
+            '<div class="icon">🔍</div>' +
+            '<h3>未找到相关故障信息</h3>' +
+            '<div class="tips">' +
+            '<div class="section-label">可能原因：</div>' +
+            '<p>• 故障代码输入有误</p>' +
+            '<p>• 该品牌/型号暂未收录</p>' +
+            '<div class="section-label">建议尝试：</div>' +
+            '<p>• 检查代码是否输入正确</p>' +
+            '<p>• 尝试搜索常见故障代码（如 E6、F0、E1）</p>' +
+            '<div class="section-label">如有其他问题：</div>' +
+            '<p>• 欢迎联系客服微信：a13878048692</p>' +
+            '</div></div>';
+    }
+
+    // 页面切换
+    function switchTab(tab) {
+        currentPage = tab;
+        const tabItems = document.querySelectorAll('.tab-item');
+        tabItems[0].classList.toggle('active', tab === 'home');
+        tabItems[1].classList.toggle('active', tab === 'mine');
+
+        document.getElementById('page-home').classList.toggle('active', tab === 'home');
+        document.getElementById('page-mine').classList.toggle('active', tab === 'mine');
+        document.getElementById('page-result').classList.remove('active');
+
+        document.getElementById('page-title').textContent = tab === 'home' ? '家电故障代码查询' : '我的';
+    }
+
+    function switchPage(page) {
+        document.getElementById('page-home').classList.toggle('active', page === 'home');
+        document.getElementById('page-mine').classList.toggle('active', page === 'mine');
+        document.getElementById('page-result').classList.toggle('active', page === 'result');
+
+        if (page === 'result') {
+            document.getElementById('page-title').textContent = '查询结果';
+        }
+    }
+
+    function goBack() {
+        switchTab('home');
+    }
+
+    // 拨打电话
+    function callPhone(phone) {
+        window.location.href = 'tel:' + phone;
+    }
+
+    // 复制文本
+    function copyText(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function() {
+                showToast('已复制: ' + text);
+            }).catch(function() {
+                fallbackCopy(text);
+            });
+        } else {
+            fallbackCopy(text);
+        }
+    }
+
+    function fallbackCopy(text) {
+        var textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showToast('已复制: ' + text);
+        } catch (e) {
+            showToast('复制失败，请手动复制');
+        }
+        document.body.removeChild(textarea);
+    }
+
+    // Toast提示
+    function showToast(msg) {
+        var toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.remove('show');
+        void toast.offsetWidth;
+        toast.classList.add('show');
+        setTimeout(function() {
+            toast.classList.remove('show');
+        }, 2000);
+    }
     </script>
-	<a href="https://hits.sh/zd1980.github.io/"><img alt="Hits" src="https://hits.sh/zd1980.github.io.svg"/></a>
+    <a href="https://hits.sh/zd1980.github.io/" style="position:fixed;bottom:60px;right:8px;opacity:0.3;z-index:1;"><img alt="Hits" src="https://hits.sh/zd1980.github.io.svg"/></a>
 </body>
 </html>
